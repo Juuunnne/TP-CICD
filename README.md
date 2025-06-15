@@ -1,8 +1,22 @@
 # TP-CICD – Projet Démonstrateur DevOps
 
-Ce dépôt illustre la mise en place progressive d’une chaîne **Infrastructure → Configuration → CI/CD → Monitoring** sur Azure, automatisée par **Terraform**, **Ansible** et **GitHub Actions**.
+## Présentation du projet 🇫🇷
 
-> Objectif pédagogique : disposer d’un socle reproductible que l’on peut enrichir mission après mission (cf. `PLAN.md`).
+### Contexte
+Ce démonstrateur a pour but de **provisionner automatiquement** :
+1. L’infrastructure Azure (réseau, VM, stockage…).
+2. Le déploiement de l’API back-end conteneurisée (futur couplage à une app mobile).
+3. Les chaînes CI/CD, les sauvegardes et, à terme, l’observabilité.
+
+### Technologies utilisées
+| Domaine | Outils |
+|---------|--------|
+| IaC | Terraform 1.6 (provider `azurerm`) |
+| Config / Deploy | Ansible 9 + dynamic inventory Azure |
+| CI/CD | GitHub Actions (workflows YAML) |
+| Conteneurisation | Docker, GHCR |
+| Backup | Recovery Services Vault (Azure Backup) |
+| Observabilité (phase 4) | Prometheus, Grafana |
 
 ---
 
@@ -101,3 +115,34 @@ docker run -p 8000:8000 api:dev
 ## 📄  Licence
 
 MIT © 2024 – Projet pédagogique.
+
+## Stratégie Git : GitFlow simplifié
+
+```
+main ⟶─✔    ← tags SemVer / prod
+        
+ develop ────🚀 déploiement dev
+      \_ feature/*  PR → develop
+       \_ hotfix/*  PR → main
+```
+
+* **main** : branche de production, version taguée `vX.Y.Z` → déclenche `cd-prod.yml`.
+* **develop** : intégration continue, toujours déployée en *dev* via `cd-dev.yml`.
+* **feature/** : nouvelles features, merge via PR + review.
+* **hotfix/** : correctifs urgents sur `main`, rebasés ensuite sur `develop`.
+
+> Capture d’écran d’historique Git : à insérer *(ex. `git log --graph --oneline`)*
+
+---
+
+## Détail des jobs CI/CD GitHub Actions
+
+| Workflow | Fichier | Jobs | Rôle |
+|-----------|---------|------|------|
+| Terraform | `.github/workflows/terraform.yml` | `terraform` | Format, init, validate, plan (CI IaC) |
+| Build API | `.github/workflows/ci-build.yml`  | `build` | Docker buildx + push image sur GHCR |
+| CD Dev    | `.github/workflows/cd-dev.yml`   | `deploy-dev` | Exécute Ansible sur env *dev* |
+| CD Prod   | `.github/workflows/cd-prod.yml`  | `deploy-prod` | Déploiement Blue env prod après tag |
+| Snapshots | `.github/workflows/verify-snapshot.yml` | `check-snapshot` | Vérifie qu’un backup < 24 h existe |
+
+Chaque job est commenté directement dans son fichier YAML pour plus de lisibilité.
