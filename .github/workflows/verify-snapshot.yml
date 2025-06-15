@@ -46,16 +46,17 @@ jobs:
           if [ -z "$LAST_TIME" ]; then
             echo "::error::No recovery point found"; exit 1; fi
 
-          echo "Last recovery point: $LAST_TIME"
+          echo "⏱  Dernier recovery point : $LAST_TIME"
+          # export pour que Python puisse lire la variable
+          export LAST_TIME
           AGE_H=$(python - <<'PY'
-import os, datetime, sys, json
-from datetime import timezone
-iso=os.environ['LAST_TIME'] if 'LAST_TIME' in os.environ else sys.argv[1]
-dt=datetime.datetime.fromisoformat(iso.replace('Z','+00:00'))
-age=(datetime.datetime.now(timezone.utc)-dt).total_seconds()/3600
+import os, datetime, timezone, datetime as dt
+iso = os.environ["LAST_TIME"]
+dt_obj = dt.datetime.fromisoformat(iso.replace('Z', '+00:00'))
+age = (dt.datetime.now(dt.timezone.utc) - dt_obj).total_seconds() / 3600
 print(int(age))
 PY
- "$LAST_TIME")
+)
           echo "Snapshot age: ${AGE_H}h"
           if [ "$AGE_H" -gt 24 ]; then
             echo "::error::Last snapshot is more than 24h old"; exit 1; fi
