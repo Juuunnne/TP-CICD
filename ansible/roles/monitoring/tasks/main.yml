@@ -8,13 +8,13 @@
   ansible.builtin.apt_key:
     url: https://packages.grafana.com/gpg.key
     state: present
-  when: ansible_os_family == 'Debian' and "monitoring" in group_names
+  when: ansible_os_family == 'Debian' and ('monitoring' in group_names)
 
 - name: Add Grafana APT repo
   ansible.builtin.apt_repository:
     repo: "deb https://packages.grafana.com/oss/deb stable main"
     state: present
-  when: ansible_os_family == 'Debian' and "monitoring" in group_names
+  when: ansible_os_family == 'Debian' and ('monitoring' in group_names)
 
 - name: Install agent packages on all nodes
   ansible.builtin.apt:
@@ -28,7 +28,7 @@
     name: "{{ item }}"
     state: present
   loop: "{{ monitoring_server_packages }}"
-  when: ansible_os_family == 'Debian' and "monitoring" in group_names
+  when: ansible_os_family == 'Debian' and ('monitoring' in group_names)
 
 - name: Ensure services are enabled and started
   ansible.builtin.service:
@@ -39,4 +39,4 @@
     - prometheus
     - alertmanager
     - grafana-server
-  when: "monitoring" in group_names 
+  when: ('monitoring' in group_names) 
