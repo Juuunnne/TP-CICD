@@ -1,9 +1,11 @@
 ---
 galaxy_info:
+  namespace: devops
   role_name: monitoring
   author: DevOps
   description: Install Prometheus Node Exporter
   license: MIT
+  min_ansible_version: "2.14"
   platforms:
     - name: Debian
       versions: ['all']

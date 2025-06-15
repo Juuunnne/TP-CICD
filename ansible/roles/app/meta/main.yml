@@ -1,9 +1,11 @@
 ---
 galaxy_info:
+  namespace: devops
   role_name: app
   author: DevOps
   description: Install application packages (e.g., nginx)
   license: MIT
+  min_ansible_version: "2.14"
   platforms:
     - name: Debian
       versions: ['all']

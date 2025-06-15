@@ -1,0 +1,63 @@
+name: verify-snapshot
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 4 * * *'  # tous les jours à 04h UTC
+
+env:
+  AZURE_RG: tpcicd-rg
+  VAULT_NAME: tpcicd-rsv
+  PROTECTED_VM: tpcicd-vm
+
+jobs:
+  check-snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Verify latest recovery point < 24h
+        env:
+          TS_ENV: ${{ env.AZURE_RG }}
+        run: |
+          set -e
+          echo "Searching backup item for $PROTECTED_VM in vault $VAULT_NAME..."
+          ITEM_ID=$(az backup item list \
+            --resource-group "$AZURE_RG" \
+            --vault-name "$VAULT_NAME" \
+            --backup-management-type AzureIaasVM \
+            --query "[?contains(name, '$PROTECTED_VM')].id | [0]" -o tsv)
+          if [ -z "$ITEM_ID" ]; then
+            echo "::error::Backup item not found for $PROTECTED_VM"; exit 1; fi
+
+          echo "Fetching latest recovery point time..."
+          LAST_TIME=$(az backup recoverypoint list \
+            --resource-group "$AZURE_RG" \
+            --vault-name "$VAULT_NAME" \
+            --item-id "$ITEM_ID" \
+            --query "max_by([], &recoveryPointTime).recoveryPointTime" -o tsv)
+
+          if [ -z "$LAST_TIME" ]; then
+            echo "::error::No recovery point found"; exit 1; fi
+
+          echo "⏱  Dernier recovery point : $LAST_TIME"
+          # export pour que Python puisse lire la variable
+          export LAST_TIME
+          AGE_H=$(python - <<'PY'
+            import os, datetime, timezone, datetime as dt
+            iso = os.environ["LAST_TIME"]
+            dt_obj = dt.datetime.fromisoformat(iso.replace('Z', '+00:00'))
+            age = (dt.datetime.now(dt.timezone.utc) - dt_obj).total_seconds() / 3600
+            print(int(age))
+            PY
+            )
+          echo "Snapshot age: ${AGE_H}h"
+          if [ "$AGE_H" -gt 24 ]; then
+            echo "::error::Last snapshot is more than 24h old"; exit 1; fi
+          echo "Snapshot age OK (<24h)" 

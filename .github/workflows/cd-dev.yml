@@ -1,0 +1,67 @@
+name: cd-dev
+
+env:
+  INVENTORY: ansible/inventory/azure_rm.yml
+  PLAYBOOK: ansible/site.yml
+  AZURE_RG: tpcicd-rg
+  AZURE_MON_VM: tpcicd-mon-vm
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+jobs:
+  deploy-dev:
+    runs-on: ubuntu-latest
+    environment: dev
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Ansible & Collections
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible "ansible[azure]" "msrestazure<1.0.0" azure-identity azure-mgmt-resource azure-mgmt-network azure-mgmt-compute
+          ansible-galaxy collection install -r ansible/requirements.yml
+
+      - name: Export Azure subscription ID for Ansible inventory
+        run: echo "AZURE_SUBSCRIPTION_ID=$(az account show --query id -o tsv)" >> $GITHUB_ENV
+
+      - name: Run Ansible Playbook (dev)
+        run: |
+          ansible-playbook -i ${{ env.INVENTORY }} ${{ env.PLAYBOOK }} --extra-vars "target_env=dev" --skip-tags monitoring
+
+      # - name: Health check Prometheus
+      #   run: |
+      #     MON_IP=$(az vm show -g "${{ env.AZURE_RG }}" -n "${{ env.AZURE_MON_VM }}" --show-details --query publicIps -o tsv || echo "")
+      #     if [ -n "$MON_IP" ]; then
+      #       echo "Waiting for Prometheus at http://$MON_IP:9090"
+      #       curl --retry 10 --retry-delay 10 --retry-connrefused -f http://$MON_IP:9090/-/healthy
+      #     else
+      #       echo "Monitoring VM IP not found, skipping check"
+      #       exit 1
+      #     fi
+
+      # - name: Debug Prometheus on VM if health check failed
+      #   if: failure()
+      #   run: |
+      #     echo "::error::Health check failed. Running diagnostics on VM..."
+      #     echo "--- Service Status ---"
+      #     az vm run-command invoke -g ${{ env.AZURE_RG }} -n ${{ env.AZURE_MON_VM }} --command-id RunShellScript --scripts "sudo systemctl status prometheus --no-pager" || true
+      #     echo "--- Listening Ports (ss -lntp) ---"
+      #     az vm run-command invoke -g ${{ env.AZURE_RG }} -n ${{ env.AZURE_MON_VM }} --command-id RunShellScript --scripts "sudo ss -lntp" || true
+      #     echo "--- Journal Logs ---"
+      #     az vm run-command invoke -g ${{ env.AZURE_RG }} -n ${{ env.AZURE_MON_VM }} --command-id RunShellScript --scripts "sudo journalctl -u prometheus -n 50 --no-pager" || true 

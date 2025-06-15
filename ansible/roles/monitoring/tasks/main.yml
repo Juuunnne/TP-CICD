@@ -1,8 +1,70 @@
 ---
-- name: Install monitoring agent packages
+- name: Ensure apt cache is up to date
+  ansible.builtin.apt:
+    update_cache: yes
+  when: ansible_os_family == 'Debian'
+
+# NEW: make sure the Universe repository is present on Ubuntu systems (required for prometheus package)
+- name: Enable Ubuntu Universe repository
+  ansible.builtin.apt_repository:
+    repo: "deb http://archive.ubuntu.com/ubuntu {{ ansible_distribution_release }} universe"
+    state: present
+  when:
+    - ansible_distribution == 'Ubuntu'
+    - ('monitoring' in group_names)
+
+- name: Add Grafana APT key
+  ansible.builtin.apt_key:
+    url: https://packages.grafana.com/gpg.key
+    state: present
+  when: ansible_os_family == 'Debian' and ('monitoring' in group_names)
+
+- name: Add Grafana APT repo
+  ansible.builtin.apt_repository:
+    repo: "deb https://packages.grafana.com/oss/deb stable main"
+    state: present
+  when: ansible_os_family == 'Debian' and ('monitoring' in group_names)
+
+- name: Install agent packages on all nodes
   ansible.builtin.apt:
     name: "{{ item }}"
-    state: present
     update_cache: yes
-  loop: "{{ monitoring_packages }}"
-  when: ansible_os_family == 'Debian' 
+    state: present
+  loop: "{{ monitoring_agent_packages }}"
+  when: ansible_os_family == 'Debian'
+
+- name: Install monitoring server packages (Prometheus, Alertmanager, Grafana)
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    update_cache: yes
+    state: present
+  loop: "{{ monitoring_server_packages }}"
+  when: "('monitoring' in group_names)"
+
+- name: Allow Prometheus to listen on all interfaces
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/prometheus.service.d/override.conf
+    content: |
+      [Service]
+      ExecStart=
+      ExecStart=/usr/bin/prometheus --config.file=/etc/prometheus/prometheus.yml \
+        --storage.tsdb.path=/var/lib/prometheus/ \
+        --web.listen-address=0.0.0.0:9090
+  notify:
+    - reload systemd
+    - restart prometheus
+  when: "('monitoring' in group_names)"
+
+- name: Force handlers to run to apply config changes before starting services
+  ansible.builtin.meta: flush_handlers
+
+- name: Ensure monitoring services are enabled and started
+  ansible.builtin.service:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop:
+    - prometheus
+    - alertmanager
+    - grafana-server
+  when: "('monitoring' in group_names)" 
