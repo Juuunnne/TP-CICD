@@ -30,7 +30,20 @@
   loop: "{{ monitoring_server_packages }}"
   when: ansible_os_family == 'Debian' and ('monitoring' in group_names)
 
-- name: Ensure services are enabled and started
+- name: Allow Prometheus to listen on all interfaces
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/prometheus.service.d/override.conf
+    content: |
+      [Service]
+      ExecStart=
+      ExecStart=/usr/bin/prometheus --config.file=/etc/prometheus/prometheus.yml \
+        --storage.tsdb.path=/var/lib/prometheus/data \
+        --web.listen-address=0.0.0.0:9090
+  notify: restart prometheus
+  when: ('monitoring' in group_names)
+
+# Ensure services are enabled and started (after override)
+- name: Enable and start Prometheus services
   ansible.builtin.service:
     name: "{{ item }}"
     enabled: true
@@ -39,4 +52,4 @@
     - prometheus
     - alertmanager
     - grafana-server
-  when: ('monitoring' in group_names) 
+  when: ansible_os_family == 'Debian' and ('monitoring' in group_names) 
