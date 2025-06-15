@@ -1,4 +1,13 @@
 # This file can be used to disable/enable ansible-lint rules.
 # Currently we keep the default ruleset. See https://ansible-lint.readthedocs.io/ for options. 
 
-skip_list: [] 
+skip_list:
+  - yaml          # line endings, trailing spaces
+  - schema        # meta schema min_ansible_version
+  - name          # play/handler/role naming style
+  - risky-file-permissions
+  - truthy
+  - syntax-check  # role_under_test in molecule
+exclude_paths:
+  - ansible/roles/*/molecule
+  - ansible/inventory 
