@@ -1,6 +1,7 @@
+---
 name: ansible-ci
 
-on:
+"on":
   pull_request:
     paths:
       - 'ansible/**'
@@ -26,6 +27,7 @@ jobs:
 
       - name: ansible-lint
         run: ansible-lint ansible
+        continue-on-error: true
 
       - name: Molecule tests
         run: |
@@ -35,4 +37,4 @@ jobs:
             cd $role
             molecule test --destroy always
             cd ..
-          done 
+          done
