@@ -39,7 +39,9 @@
       ExecStart=/usr/bin/prometheus --config.file=/etc/prometheus/prometheus.yml \
         --storage.tsdb.path=/var/lib/prometheus/data \
         --web.listen-address=0.0.0.0:9090
-  notify: restart prometheus
+  notify:
+    - reload systemd
+    - restart prometheus
   when: ('monitoring' in group_names)
 
 # Ensure services are enabled and started (after override)

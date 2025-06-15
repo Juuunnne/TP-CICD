@@ -35,6 +35,9 @@ jobs:
           pip install ansible "ansible[azure]"
           ansible-galaxy collection install -r ansible/requirements.yml
 
+      - name: Export Azure subscription ID for Ansible inventory
+        run: echo "AZURE_SUBSCRIPTION_ID=$(az account show --query id -o tsv)" >> $GITHUB_ENV
+
       - name: Run Ansible Playbook (prod)
         run: |
           ansible-playbook -i ansible/inventory/azure_rm.yml ansible/site.yml --extra-vars "target_env=prod" 
