@@ -48,8 +48,20 @@ jobs:
         run: |
           MON_IP=$(az vm show -g "${{ env.AZURE_RG }}" -n "${{ env.AZURE_MON_VM }}" --show-details --query publicIps -o tsv || echo "")
           if [ -n "$MON_IP" ]; then
-            echo "Waiting Prometheus at $MON_IP:9090"
-            curl --retry 10 --retry-delay 5 --retry-connrefused http://$MON_IP:9090/-/healthy
+            echo "Waiting for Prometheus at http://$MON_IP:9090"
+            curl --retry 10 --retry-delay 10 --retry-connrefused -f http://$MON_IP:9090/-/healthy
           else
             echo "Monitoring VM IP not found, skipping check"
-          fi 
+            exit 1
+          fi
+
+      - name: Debug Prometheus on VM if health check failed
+        if: failure()
+        run: |
+          echo "::error::Health check failed. Running diagnostics on VM..."
+          echo "--- Service Status ---"
+          az vm run-command invoke -g ${{ env.AZURE_RG }} -n ${{ env.AZURE_MON_VM }} --command-id RunShellScript --scripts "sudo systemctl status prometheus --no-pager" || true
+          echo "--- Listening Ports (ss -lntp) ---"
+          az vm run-command invoke -g ${{ env.AZURE_RG }} -n ${{ env.AZURE_MON_VM }} --command-id RunShellScript --scripts "sudo ss -lntp" || true
+          echo "--- Journal Logs ---"
+          az vm run-command invoke -g ${{ env.AZURE_RG }} -n ${{ env.AZURE_MON_VM }} --command-id RunShellScript --scripts "sudo journalctl -u prometheus -n 50 --no-pager" || true 
