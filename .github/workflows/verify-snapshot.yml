@@ -50,13 +50,13 @@ jobs:
           # export pour que Python puisse lire la variable
           export LAST_TIME
           AGE_H=$(python - <<'PY'
-import os, datetime, timezone, datetime as dt
-iso = os.environ["LAST_TIME"]
-dt_obj = dt.datetime.fromisoformat(iso.replace('Z', '+00:00'))
-age = (dt.datetime.now(dt.timezone.utc) - dt_obj).total_seconds() / 3600
-print(int(age))
-PY
-)
+            import os, datetime, timezone, datetime as dt
+            iso = os.environ["LAST_TIME"]
+            dt_obj = dt.datetime.fromisoformat(iso.replace('Z', '+00:00'))
+            age = (dt.datetime.now(dt.timezone.utc) - dt_obj).total_seconds() / 3600
+            print(int(age))
+            PY
+            )
           echo "Snapshot age: ${AGE_H}h"
           if [ "$AGE_H" -gt 24 ]; then
             echo "::error::Last snapshot is more than 24h old"; exit 1; fi
