@@ -4,6 +4,15 @@
     update_cache: yes
   when: ansible_os_family == 'Debian'
 
+# NEW: make sure the Universe repository is present on Ubuntu systems (required for prometheus package)
+- name: Enable Ubuntu Universe repository
+  ansible.builtin.apt_repository:
+    repo: "deb http://archive.ubuntu.com/ubuntu {{ ansible_distribution_release }} universe"
+    state: present
+  when:
+    - ansible_distribution == 'Ubuntu'
+    - ('monitoring' in group_names)
+
 - name: Add Grafana APT key
   ansible.builtin.apt_key:
     url: https://packages.grafana.com/gpg.key
@@ -19,6 +28,7 @@
 - name: Install agent packages on all nodes
   ansible.builtin.apt:
     name: "{{ item }}"
+    update_cache: yes
     state: present
   loop: "{{ monitoring_agent_packages }}"
   when: ansible_os_family == 'Debian'
@@ -26,6 +36,7 @@
 - name: Install monitoring server packages (Prometheus, Alertmanager, Grafana)
   ansible.builtin.apt:
     name: "{{ item }}"
+    update_cache: yes
     state: present
   loop: "{{ monitoring_server_packages }}"
   when: "('monitoring' in group_names)"

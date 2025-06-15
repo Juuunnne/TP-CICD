@@ -112,6 +112,3 @@ Terraform ➜ Ansible ➜ CI/CD ➜ Versioning
 * **vX.Y.Z** tagué sur `main`, auto-bump fichier VERSION
 
 ---
-
-## Prochaine étape immédiate
-Démarrer la **Phase 0** (normes Git & versionning) afin de sécuriser la base de travail avant l'écriture du code Terraform. 
