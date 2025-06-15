@@ -36,7 +36,9 @@ jobs:
 
       - name: Extract version
         id: vars
-        run: echo "version=$(cat VERSION 2>/dev/null || echo $GITHUB_SHA)" >> $GITHUB_OUTPUT
+        run: |
+          echo "version=$(cat VERSION 2>/dev/null || echo $GITHUB_SHA)" >> $GITHUB_OUTPUT
+          echo "repo_lower=$(echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -44,8 +46,8 @@ jobs:
           context: ./api
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}/api:${{ steps.vars.outputs.version }}
-            ghcr.io/${{ github.repository }}/api:latest
+            ghcr.io/${{ steps.vars.outputs.repo_lower }}/api:${{ steps.vars.outputs.version }}
+            ghcr.io/${{ steps.vars.outputs.repo_lower }}/api:latest
 
       - name: Post-build tests (optional)
         run: echo "Add your API tests here" 

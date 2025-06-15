@@ -3,6 +3,8 @@
 plugin: azure_rm
 # Attempt to discover credentials from environment or managed identity
 auth_source: auto
+# Utiliser les identifiants déjà acquis par az login (GitHub Action azure/login)
+use_cli_credentials: true
 # Only include VMs that have the tag "environment: dev"
 filters:
   tags:
