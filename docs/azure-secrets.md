@@ -31,7 +31,7 @@ Conservez soigneusement ce bloc : c'est la valeur du secret `AZURE_CREDENTIALS`.
 
 ## 2. Génération de la clé SSH
 ```bash
-ssh-keygen -t ed25519 -C "tp-cicd" -f ~/.ssh/tp-cicd
+ssh-keygen -t rsa -b 4096 -C "tp-cicd" -f ~/.ssh/tp-cicd
 ```
 * `tp-cicd` (clé privée) sera encodée et stockée dans le secret `SSH_PRIVATE_KEY` (base64 ou texte brut).
 * `tp-cicd.pub` (clé publique) sera ajoutée aux utilisateurs ou aux VMs provisionnées via Terraform/Ansible.

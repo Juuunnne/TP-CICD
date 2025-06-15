@@ -1,0 +1,57 @@
+name: terraform
+
+on:
+  pull_request:
+    paths:
+      - 'terraform/**'
+      - '.github/workflows/terraform.yml'
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write      # Needed for Azure OIDC login
+
+    env:
+      TF_IN_AUTOMATION: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.5.0'
+
+      - name: Terraform Format
+        run: terraform -chdir=terraform fmt -check -recursive
+
+      - name: Terraform Init
+        run: |
+          terraform -chdir=terraform init \
+            -backend-config="resource_group_name=${{ secrets.TF_BACKEND_RG }}" \
+            -backend-config="storage_account_name=${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}" \
+            -backend-config="container_name=${{ secrets.TF_BACKEND_CONTAINER }}" \
+            -backend-config="key=${{ secrets.TF_BACKEND_KEY }}"
+
+      - name: Terraform Validate
+        run: terraform -chdir=terraform validate -no-color
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform -chdir=terraform plan -no-color -input=false
+
+      - name: Upload Plan as Artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: terraform/tfplan
+          if-no-files-found: ignore 
