@@ -12,4 +12,5 @@
 - hosts: monitoring
   become: true
   roles:
-    - monitoring 
+    - role: monitoring
+      tags: monitoring 
