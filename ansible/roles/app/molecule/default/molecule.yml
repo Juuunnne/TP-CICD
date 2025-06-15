@@ -19,4 +19,4 @@ provisioner:
 
 verifier:
   name: ansible
-  playbook: verify.yml 
+  verify_playbook: verify.yml 
