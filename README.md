@@ -29,6 +29,8 @@ Ce démonstrateur a pour but de **provisionner automatiquement** :
 | `api/` | Code de l’API + `Dockerfile` pour l’image conteneur |
 | `monitoring/` | Manifests / docs pour la stack Observabilité (phase 4) |
 | `scripts/` | Outils divers (ex. bump de version) |
+| `docs/` | Additional documentation |
+| `snapshots/` | Backup & rollback : module Terraform + script [HOWTOROLLBACK.md](snapshots/HOWTOROLLBACK.md) |
 | `.github/workflows/` | Workflows CI/CD GitHub Actions |
 
 ---
