@@ -32,7 +32,7 @@ jobs:
       - name: Install Ansible & Collections
         run: |
           python -m pip install --upgrade pip
-          pip install ansible "ansible[azure]"
+          pip install ansible "ansible[azure]" "msrestazure<1.0.0" azure-identity azure-mgmt-resource azure-mgmt-network azure-mgmt-compute
           ansible-galaxy collection install -r ansible/requirements.yml
 
       - name: Export Azure subscription ID for Ansible inventory
