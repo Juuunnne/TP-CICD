@@ -1,0 +1,38 @@
+name: ansible-ci
+
+on:
+  pull_request:
+    paths:
+      - 'ansible/**'
+      - '.github/workflows/ansible-ci.yml'
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible ansible-lint "molecule[docker]" docker
+
+      - name: ansible-lint
+        run: ansible-lint ansible
+
+      - name: Molecule tests
+        run: |
+          cd ansible/roles
+          for role in app db monitoring; do
+            echo "=== Running Molecule for $role ==="
+            cd $role
+            molecule test --destroy always
+            cd ..
+          done 

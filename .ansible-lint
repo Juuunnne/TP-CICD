@@ -1,0 +1,2 @@
+# This file can be used to disable/enable ansible-lint rules.
+# Currently we keep the default ruleset. See https://ansible-lint.readthedocs.io/ for options. 

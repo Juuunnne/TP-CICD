@@ -1,0 +1,25 @@
+# Azure dynamic inventory using azure_rm plugin
+---
+plugin: azure_rm
+# Attempt to discover credentials from environment or managed identity
+auth_source: auto
+# Only include VMs that have the tag "environment: dev"
+filters:
+  tags:
+    environment: "dev"
+# Compose inventory variables
+compose:
+  ansible_host: private_ip_address
+# Define groups based on tags
+keyed_groups:
+  - key: tags.role
+    separator: "_"
+    prefix: "role"
+  - key: tags.environment
+    prefix: "env"
+
+# Additional static groups for convenience
+conditional_groups:
+  app: "'role' in tags and tags['role'] == 'app'"
+  db: "'role' in tags and tags['role'] == 'db'"
+  monitoring: "'role' in tags and tags['role'] == 'monitoring'" 

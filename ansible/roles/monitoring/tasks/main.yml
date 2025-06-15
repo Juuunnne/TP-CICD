@@ -1,0 +1,8 @@
+---
+- name: Install monitoring agent packages
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  loop: "{{ monitoring_packages }}"
+  when: ansible_os_family == 'Debian' 

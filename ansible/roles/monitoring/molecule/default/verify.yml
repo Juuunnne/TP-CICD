@@ -1,0 +1,10 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check node_exporter binary
+      ansible.builtin.command: which node_exporter || which prometheus-node-exporter
+      register: node_cmd
+      changed_when: false
+      failed_when: node_cmd.rc != 0 

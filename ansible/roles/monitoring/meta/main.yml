@@ -1,0 +1,11 @@
+---
+galaxy_info:
+  role_name: monitoring
+  author: DevOps
+  description: Install Prometheus Node Exporter
+  license: MIT
+  platforms:
+    - name: Debian
+      versions: ['all']
+
+dependencies: [] 

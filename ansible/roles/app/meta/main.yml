@@ -1,0 +1,11 @@
+---
+galaxy_info:
+  role_name: app
+  author: DevOps
+  description: Install application packages (e.g., nginx)
+  license: MIT
+  platforms:
+    - name: Debian
+      versions: ['all']
+
+dependencies: [] 

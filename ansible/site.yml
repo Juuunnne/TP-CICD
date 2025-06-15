@@ -1,0 +1,15 @@
+---
+- hosts: app
+  become: true
+  roles:
+    - app
+
+- hosts: db
+  become: true
+  roles:
+    - db
+
+- hosts: monitoring
+  become: true
+  roles:
+    - monitoring 

@@ -1,0 +1,10 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check mysqld binary
+      ansible.builtin.command: which mysqld
+      register: mysql_cmd
+      changed_when: false
+      failed_when: mysql_cmd.rc != 0 

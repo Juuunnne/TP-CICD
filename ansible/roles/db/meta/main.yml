@@ -1,0 +1,11 @@
+---
+galaxy_info:
+  role_name: db
+  author: DevOps
+  description: Install MySQL server
+  license: MIT
+  platforms:
+    - name: Debian
+      versions: ['all']
+
+dependencies: [] 

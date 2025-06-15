@@ -1,0 +1,8 @@
+---
+- name: Install DB packages
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  loop: "{{ db_packages }}"
+  when: ansible_os_family == 'Debian' 

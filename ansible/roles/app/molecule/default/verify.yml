@@ -1,0 +1,10 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check nginx binary
+      ansible.builtin.command: which nginx
+      register: nginx_cmd
+      changed_when: false
+      failed_when: nginx_cmd.rc != 0 
