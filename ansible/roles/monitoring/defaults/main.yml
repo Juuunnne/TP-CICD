@@ -1,3 +1,9 @@
 ---
-monitoring_packages:
-  - prometheus-node-exporter 
+monitoring_agent_packages:
+  - prometheus-node-exporter
+
+monitoring_server_packages:
+  - prometheus
+  - prometheus-node-exporter
+  - alertmanager
+  - grafana 
