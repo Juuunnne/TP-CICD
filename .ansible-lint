@@ -7,7 +7,6 @@ skip_list:
   - name          # play/handler/role naming style
   - risky-file-permissions
   - truthy
-  - syntax-check  # role_under_test in molecule
 exclude_paths:
-  - ansible/roles/*/molecule
+  - ansible/roles/*/molecule/**
   - ansible/inventory 
