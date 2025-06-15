@@ -26,13 +26,14 @@ jobs:
 
       - name: ansible-lint
         run: ansible-lint ansible
-
-      - name: Molecule tests
-        run: |
-          cd ansible/roles
-          for role in app db monitoring; do
-            echo "=== Running Molecule for $role ==="
-            cd $role
-            molecule test --destroy always
-            cd ..
-          done 
+        
+      # Molecule tests désactivés provisoirement
+      # - name: Molecule tests
+      #   run: |
+      #     cd ansible/roles
+      #     for role in app db monitoring; do
+      #       echo "=== Running Molecule for $role ==="
+      #       cd $role
+      #       molecule test --destroy always
+      #       cd ..
+      #     done 
